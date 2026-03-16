@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LANGEO NET - Full Speed Test</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { 
+            --accent: #0070f3; /* Biru Profesional */
+            --accent-2: #7928ca; /* Ungu Modern */
+            --bg: #ffffff; 
+            --card-bg: #f8f9fa;
+            --text-main: #1a1a1a;
+            --text-muted: #666666;
+        }
+
+        * { box-sizing: border-box; }
+
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg); 
+            color: var(--text-main); 
+            margin: 0; 
+            display: flex; 
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        /* Layout Full Page */
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: -1px;
+        }
+
+        .header span { color: var(--accent); }
+
+        /* Main Dashboard */
+        .dashboard {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 30px;
+            max-width: 900px;
+        }
+
+        @media (min-width: 768px) {
+            .dashboard { grid-template-columns: 1fr 1.5fr; align-items: start; }
+        }
+
+        .card { 
+            background: var(--card-bg); 
+            border: 1px solid #eaeaea; 
+            padding: 40px; 
+            border-radius: 30px; 
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        .info-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        .info-item {
+            background: white;
+            padding: 15px;
+            border-radius: 15px;
+            border: 1px solid #eee;
+        }
+
+        .info-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; }
+        .info-value { font-size: 0.9rem; font-weight: 700; display: block; color: var(--accent-2); }
+
+        /* Speedometer Area */
+        .speed-value { 
+            font-size: 6rem; 
+            font-weight: 900; 
+            margin: 10px 0; 
+            color: var(--text-main);
+            line-height: 1;
+        }
+        
+        .unit { font-size: 1rem; color: var(--accent); font-weight: 800; letter-spacing: 2px; }
+
+        .progress-bar { height: 8px; background: #eee; margin: 30px 0; border-radius: 10px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); width: 0%; transition: 0.1s linear; }
+
+        .stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .stat-box { background: #fff; padding: 20px; border-radius: 20px; border: 1px solid #eee; }
+        .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 5px; }
+        .stat-val { font-size: 1.2rem; font-weight: 800; }
+
+        #rating-result { 
+            margin-top: 25px; 
+            padding: 20px; 
+            border-radius: 20px; 
+            background: #f0f7ff; 
+            border: 2px solid var(--accent);
+            display: none;
+        }
+
+        button { 
+            background: var(--text-main); 
+            color: #fff; border: none; padding: 20px 40px; border-radius: 50px; 
+            font-weight: 800; cursor: pointer; margin-top: 30px; font-size: 1.1rem;
+            transition: 0.3s; width: 100%;
+        }
+        button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
+        button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="header">
+        <h1>LANGEO <span>NET</span></h1>
+        <p style="color: var(--text-muted)">Professional Network Diagnostic Tool</p>
+    </div>
+
+    <div class="dashboard">
+        <div class="side-panel">
+            <div class="info-panel">
+                <div class="info-item" style="grid-column: span 2;">
+                    <span class="info-label">Provider (ISP)</span>
+                    <span class="info-value" id="isp-display">Detecting...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">IP Address</span>
+                    <span class="info-value" id="ip-display">...</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Device Type</span>
+                    <span class="info-value" id="device-display">...</span>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Ping</div>
+                    <div class="stat-val"><span id="ping">-</span> <small>ms</small></div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Jitter</div>
+                    <div class="stat-val"><span id="jitter">-</span> <small>ms</small></div>
+                </div>
+            </div>
+            
+            <button id="btn" onclick="runFullTest()">START SPEED TEST</button>
+        </div>
+
+        <div class="card">
+            <p class="unit" id="test-label">READY</p>
+            <div class="speed-value" id="main-speed">0.0</div>
+            <p id="sub-unit" style="margin-top:-10px; font-weight:bold; color:var(--text-muted)">Mbps</p>
+            
+            <div class="progress-bar"><div class="progress-fill" id="p-bar"></div></div>
+
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Download</div>
+                    <div class="stat-val" id="down-val">0.0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Upload</div>
+                    <div class="stat-val" id="up-val">0.0</div>
+                </div>
+            </div>
+
+            <div id="rating-result">
+                <div id="stars" style="font-size: 1.5rem; color: #ffb800;"></div>
+                <div id="rating-text" style="font-weight: 900; text-transform: uppercase;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const SPEED_API = "https://speed.cloudflare.com";
+const UP_BACKUP = "https://httpbin.org/post"; 
+
+let finalDownload = 0;
+let finalUpload = 0;
+
+// Fungsi Deteksi Perangkat
+function getDeviceInfo() {
+    const ua = navigator.userAgent;
+    let device = "Desktop PC";
+    
+    if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
+        device = "Tablet";
+    } else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
+        device = "Mobile Device";
+    }
+    
+    document.getElementById('device-display').innerText = device;
+}
+
+async function getNetworkDetails() {
+    try {
+        const res = await fetch('https://ipinfo.io/json');
+        const data = await res.json();
+        let isp = data.org ? data.org.replace(/^AS\d+\s*/, '') : "Unknown ISP";
+        document.getElementById('isp-display').innerText = isp;
+        document.getElementById('ip-display').innerText = data.ip;
+    } catch (e) {
+        document.getElementById('isp-display').innerText = "Online";
+        document.getElementById('ip-display').innerText = "Detected";
+    }
+}
+
+// Inisialisasi awal
+getDeviceInfo();
+getNetworkDetails();
+
+async function runFullTest() {
+    const btn = document.getElementById('btn');
+    btn.disabled = true;
+    btn.innerText = "TESTING...";
+    document.getElementById('rating-result').style.display = "none";
+    
+    // Latency Test
+    document.getElementById('test-label').innerText = "LATENCY";
+    let pings = [];
+    for(let i=0; i<6; i++) {
+        const start = performance.now();
+        await fetch(SPEED_API + "/__up", { method: 'POST', body: 'p', mode: 'no-cors' }).catch(()=>{});
+        pings.push(performance.now() - start);
+        document.getElementById('ping').innerText = Math.round(pings[pings.length-1]);
+    }
+    const avgPing = pings.reduce((a,b)=>a+b)/pings.length;
+    document.getElementById('jitter').innerText = Math.round(Math.max(...pings) - Math.min(...pings));
+
+    await measure('DOWNLOAD');
+    await measure('UPLOAD');
+
+    evaluate(finalDownload, avgPing);
+    btn.disabled = false;
+    btn.innerText = "RE-RUN TEST";
+    document.getElementById('test-label').innerText = "FINISHED";
+}
+
+function measure(type) {
+    return new Promise((resolve) => {
+        const isDown = type === 'DOWNLOAD';
+        document.getElementById('test-label').innerText = type;
+        
+        const startTime = performance.now();
+        const durationLimit = 7000; 
+        const xhr = new XMLHttpRequest();
+        
+        if (isDown) {
+            xhr.open("GET", SPEED_API + "/__down?bytes=50000000&cb=" + Math.random(), true);
+            xhr.onprogress = (e) => updateUI(e.loaded, startTime, isDown);
+        } else {
+            xhr.open("POST", UP_BACKUP, true);
+            xhr.upload.onprogress = (e) => updateUI(e.loaded, startTime, isDown);
+        }
+
+        const timeout = setTimeout(() => { xhr.abort(); resolve(); }, durationLimit);
+        xhr.onload = xhr.onerror = () => { clearTimeout(timeout); resolve(); };
+        
+        if (isDown) {
+            xhr.send();
+        } else {
+            const data = new Uint8Array(5 * 1024 * 1024);
+            xhr.send(data);
+        }
+    });
+}
+
+function updateUI(bytes, start, isDown) {
+    const duration = (performance.now() - start) / 1000;
+    if (duration <= 0) return;
+    
+    const mbps = ((bytes * 8) / duration) / 1000000;
+    document.getElementById('main-speed').innerText = mbps.toFixed(1);
+    document.getElementById('p-bar').style.width = Math.min((duration / 7) * 100, 100) + "%";
+    
+    if (isDown) {
+        document.getElementById('down-val').innerText = mbps.toFixed(1) + " Mbps";
+        finalDownload = mbps;
+    } else {
+        document.getElementById('up-val').innerText = mbps.toFixed(1) + " Mbps";
+        finalUpload = mbps;
+    }
+}
+
+function evaluate(speed, ping) {
+    let score = speed > 50 ? 6 : speed > 30 ? 5 : speed > 15 ? 4 : speed > 7 ? 3 : 2;
+    if (ping < 50 && score < 6) score++;
+    document.getElementById('stars').innerHTML = "★".repeat(score) + "☆".repeat(6-score);
+    const msgs = ["Slow Connection", "Average", "Good", "Very Fast", "Excellent", "Ultra High Speed"];
+    document.getElementById('rating-text').innerText = msgs[score-1];
+    document.getElementById('rating-result').style.display = "block";
+    document.getElementById('p-bar').style.width = "100%";
+}
+</script>
+</body>
+</html>
