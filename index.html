@@ -61,6 +61,7 @@
             grid-template-columns: 1fr;
             gap: 30px;
             max-width: 900px;
+            margin-bottom: 40px; /* Memberi jarak sebelum tombol */
         }
 
         @media (min-width: 768px) {
@@ -122,11 +123,25 @@
             display: none;
         }
 
+        /* DIEDIT: Style Tombol agar tengah dan bagus di bawah */
+        .action-area {
+            width: 100%;
+            max-width: 900px; /* Sesuaikan dengan lebar dashboard */
+            text-align: center;
+        }
+
         button { 
             background: var(--text-main); 
-            color: #fff; border: none; padding: 20px 40px; border-radius: 50px; 
-            font-weight: 800; cursor: pointer; margin-top: 30px; font-size: 1.1rem;
-            transition: 0.3s; width: 100%;
+            color: #fff; 
+            border: none; 
+            padding: 20px 60px; 
+            border-radius: 50px; 
+            font-weight: 800; 
+            cursor: pointer; 
+            font-size: 1.1rem;
+            transition: 0.3s; 
+            width: 100%; 
+            max-width: 400px; /* Agar tidak terlalu lebar di desktop */
         }
         button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
@@ -144,10 +159,17 @@
     <div class="dashboard">
         <div class="side-panel">
             <div class="info-panel">
-                <div class="info-item" style="grid-column: span 2;">
+                <div class="info-item">
                     <span class="info-label">Provider (ISP)</span>
                     <span class="info-value" id="isp-display">Detecting...</span>
                 </div>
+                
+                <!-- Server Location -->
+                <div class="info-item">
+                    <span class="info-label">Server</span>
+                    <span class="info-value" id="server-display">Detecting...</span>
+                </div>
+
                 <div class="info-item">
                     <span class="info-label">IP Address</span>
                     <span class="info-value" id="ip-display">...</span>
@@ -169,7 +191,7 @@
                 </div>
             </div>
             
-            <button id="btn" onclick="runFullTest()">START SPEED TEST</button>
+            <!-- TOMBOL DIHAPUS DARI SINI -->
         </div>
 
         <div class="card">
@@ -196,6 +218,12 @@
             </div>
         </div>
     </div>
+
+    <!-- DIPINDAHKAN: Tombol sekarang berada di bawah dashboard -->
+    <div class="action-area">
+        <button id="btn" onclick="runFullTest()">START SPEED TEST</button>
+    </div>
+
 </div>
 
 <script>
@@ -223,12 +251,22 @@ async function getNetworkDetails() {
     try {
         const res = await fetch('https://ipinfo.io/json');
         const data = await res.json();
+        
+        // Proses ISP
         let isp = data.org ? data.org.replace(/^AS\d+\s*/, '') : "Unknown ISP";
         document.getElementById('isp-display').innerText = isp;
+        
+        // Proses IP
         document.getElementById('ip-display').innerText = data.ip;
+
+        // Proses Server Location
+        let serverLocation = data.city || "Unknown";
+        document.getElementById('server-display').innerText = serverLocation;
+
     } catch (e) {
         document.getElementById('isp-display').innerText = "Online";
         document.getElementById('ip-display').innerText = "Detected";
+        document.getElementById('server-display').innerText = "Local";
     }
 }
 
