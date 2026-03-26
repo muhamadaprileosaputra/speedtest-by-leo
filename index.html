@@ -61,7 +61,7 @@
             grid-template-columns: 1fr;
             gap: 30px;
             max-width: 900px;
-            margin-bottom: 40px; /* Memberi jarak sebelum tombol */
+            margin-bottom: 40px;
         }
 
         @media (min-width: 768px) {
@@ -123,10 +123,9 @@
             display: none;
         }
 
-        /* DIEDIT: Style Tombol agar tengah dan bagus di bawah */
         .action-area {
             width: 100%;
-            max-width: 900px; /* Sesuaikan dengan lebar dashboard */
+            max-width: 900px;
             text-align: center;
         }
 
@@ -141,7 +140,7 @@
             font-size: 1.1rem;
             transition: 0.3s; 
             width: 100%; 
-            max-width: 400px; /* Agar tidak terlalu lebar di desktop */
+            max-width: 400px;
         }
         button:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(0,0,0,0.1); }
         button:disabled { background: #ccc; cursor: not-allowed; transform: none; }
@@ -164,7 +163,6 @@
                     <span class="info-value" id="isp-display">Detecting...</span>
                 </div>
                 
-                <!-- Server Location -->
                 <div class="info-item">
                     <span class="info-label">Server</span>
                     <span class="info-value" id="server-display">Detecting...</span>
@@ -190,8 +188,6 @@
                     <div class="stat-val"><span id="jitter">-</span> <small>ms</small></div>
                 </div>
             </div>
-            
-            <!-- TOMBOL DIHAPUS DARI SINI -->
         </div>
 
         <div class="card">
@@ -219,7 +215,6 @@
         </div>
     </div>
 
-    <!-- DIPINDAHKAN: Tombol sekarang berada di bawah dashboard -->
     <div class="action-area">
         <button id="btn" onclick="runFullTest()">START SPEED TEST</button>
     </div>
@@ -233,15 +228,34 @@ const UP_BACKUP = "https://httpbin.org/post";
 let finalDownload = 0;
 let finalUpload = 0;
 
-// Fungsi Deteksi Perangkat
+// === FUNGSI DETEKSI PERANGKAK YANG DIPERBAIKI ===
 function getDeviceInfo() {
     const ua = navigator.userAgent;
-    let device = "Desktop PC";
-    
+    const platform = navigator.platform || "";
+    let device = "Unknown Device";
+
+    // Deteksi Mobile & Tablet dulu
     if (/(tablet|ipad|playbook|silk)|(android(?!.*mobi))/i.test(ua)) {
         device = "Tablet";
     } else if (/Mobile|Android|iP(hone|od)|IEMobile|BlackBerry|Kindle|Silk-Accelerated|(hpw|web)OS|Opera M(obi|ini)/.test(ua)) {
         device = "Mobile Device";
+    } else {
+        // Logika untuk Desktop, Laptop, Komputer, Server
+        // Karena browser tidak bisa membedakan PC fisik vs Laptop vs Server,
+        // kita gunakan label yang Anda minta berdasarkan OS.
+        
+        if (/Win/i.test(platform) || /Windows NT/i.test(ua)) {
+            device = "Desktop / Laptop"; // Windows bisa keduanya
+        } else if (/Mac/i.test(platform) || /Macintosh/i.test(ua)) {
+            device = "Desktop / Laptop (Mac)"; // Mac bisa iMac atau MacBook
+        } else if (/Linux/i.test(platform) || /Linux/i.test(ua)) {
+            // Linux sering digunakan untuk Server atau Desktop kustom
+            device = "Desktop / Server (Linux)"; 
+        } else if (/CrOS/i.test(ua)) {
+            device = "Chromebook / Laptop";
+        } else {
+            device = "Komputer / PC"; // Fallback umum
+        }
     }
     
     document.getElementById('device-display').innerText = device;
@@ -252,25 +266,22 @@ async function getNetworkDetails() {
         const res = await fetch('https://ipinfo.io/json');
         const data = await res.json();
         
-        // Proses ISP
         let isp = data.org ? data.org.replace(/^AS\d+\s*/, '') : "Unknown ISP";
         document.getElementById('isp-display').innerText = isp;
-        
-        // Proses IP
         document.getElementById('ip-display').innerText = data.ip;
-
-        // Proses Server Location
+        
         let serverLocation = data.city || "Unknown";
+        if(data.country) serverLocation += ", " + data.country;
         document.getElementById('server-display').innerText = serverLocation;
 
     } catch (e) {
-        document.getElementById('isp-display').innerText = "Online";
-        document.getElementById('ip-display').innerText = "Detected";
-        document.getElementById('server-display').innerText = "Local";
+        document.getElementById('isp-display').innerText = "Offline / Local";
+        document.getElementById('ip-display').innerText = "127.0.0.1";
+        document.getElementById('server-display').innerText = "Localhost";
     }
 }
 
-// Inisialisasi awal
+// Inisialisasi
 getDeviceInfo();
 getNetworkDetails();
 
